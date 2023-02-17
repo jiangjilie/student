@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>网站管理</title>
+		<script src="http://base.s.rcqjy.com/js/base.js"></script>
+		<script src="http://base.s.rcqjy.com/js/editor.js"></script>
+		<link rel="stylesheet" href="http://base.s.rcqjy.com/css/base.css">
+	</head>
+	<body>
+		<!--顶部-->
+		<div class="mo-header">
+			<div class="logo"><img src="http://base.s.rcqjy.com/img/logo.png" /></div>
+			<a href="javascript:;" class="mo-goback">学生管理</a>
+			<div class="nav" id='nav'>
+				<!--className为active,表示选中-->
+				<a href="javascript:;" class="active">主栏目一</a>
+				<a href="javascript:;">主栏目二</a>
+				<a href="javascript:;">主栏目三</a>
+				<a href="javascript:;">主栏目四</a>
+			</div>
+			<!--登陆用户信息-->
+			<div class="mo-userinfo">
+				<img src="http://base.s.rcqjy.com/img/default-user-img.png" class="icon br50" />
+				<div class="mo-dropdown mar-rig-10">
+					<div class="mo-dropdown-tit" id='myxm'>admin</div>
+					<div class="mo-dropdown-sub">
+						<a href="login.php?act=logout">退出</a>
+					</div>
+				</div>
+				<div class="mo-dropdown">
+					<div class="mo-dropdown-tit">切换主题</div>
+					<div class="mo-dropdown-sub">
+						<a href="javascript:;" class="active">默认</a>
+						<a href="javascript:;">明亮</a>
+						<a href="javascript:;">暗黑</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!--左侧菜单栏目-->
+		<div class="mo-mob-left-a"></div><!--移动端显示，点击显示隐藏左侧菜单栏-->
+		<div class="mo-left">
+			<div class="mo-menu mar-top-20" id="treeclass">
+<!--				<div class="mo-menu-li">-->
+<!--					<a href="javascript:;" class="active">栏目一</a>-->
+<!--					&lt;!&ndash;className为active,表示选中&ndash;&gt;-->
+<!--				</div>-->
+<!--				<div class="mo-menu-li">-->
+<!--					<a href="javascript:;">栏目二</a>-->
+<!--				</div>-->
+<!--				<div class="mo-menu-li">-->
+<!--					<a href="javascript:;">栏目三</a>-->
+<!--				</div>-->
+<!--				<div class="mo-menu-li">-->
+<!--					<a href="javascript:;">栏目四</a>-->
+<!--				</div>-->
+<!--				<div class="mo-menu-li">-->
+<!--					<a href="javascript:;">栏目五</a>-->
+<!--				</div>-->
+			</div>
+		</div>
+		<!--面包屑导航-->
+		<div class="mo-breadlink" id='classpath'>
+<!--			<a href="javascript:;">主页</a>&gt;<a href="javascript:;">主栏目一</a>&gt;<a href="javascript:;">栏目二</a>&gt;<a href="javascript:;">二级栏目</a>-->
+		</div>
+		
+		<!--主体内容-->
+		<div class="mo-right" >
+			荣昌区智慧教育综合管理学生管理模块<br/><br/>使用帮助，请电话联系：46771922
+		</div>
+	</body>
+<script>
+function getmyinfo(){            //获取顶部菜单
+	ajax('api/main.php?act=getmyinfo',null,function(jobj){
+		$('nav').innerHTML='';
+		let data = jobj.data;
+		for(let k in data){
+			let n=domnew($('nav'),'a',null,data[k].name);
+			n.setAttribute('class','cd');
+			n.setAttribute('href','javascript:;');
+			n.setAttribute('id',data[k].id);
+		}
+		let yj=document.getElementsByClassName('cd');         //顶部菜单切换样式
+		for(let i=0;i<yj.length;i++){
+			yj[i].onmouseover=function(){
+				this.classList.add('active');
+			}
+			yj[i].onclick=function(){
+				this.classList.add('active');
+				//点击显示侧边菜单
+				// alert(this.id);
+				let pid = this.id;
+				ajax('api/main.php?act=getmymenu&pid='+pid,null,function(data) {
+					// console.log(data.data);
+					$('treeclass').innerHTML='';
+					let datam = data.data;
+					for(let k in datam) {
+						let n = domnew($('treeclass'), 'div', null);    //domnew函数构造页面元素（div、a等）
+						n.setAttribute('class', 'mo-menu-li');
+						n.setAttribute('id', datam[k].id);
+					}
+					for(let k in datam){
+						let m=domnew($(datam[k].id),'a',null,datam[k].name);
+						m.setAttribute('class','ab');
+						m.setAttribute('href',datam[k].url+'?top_id='+datam[k].pid+'&left_id='+ datam[k].id);
+						m.setAttribute('id',datam[k].url);
+					}
+				})
+
+			}
+			yj[i].onmouseout=function(){
+				this.classList.remove('active');
+			}
+		}
+	});
+
+}
+getmyinfo();
+
+</script>
+</html>

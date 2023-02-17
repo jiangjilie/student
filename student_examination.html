@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*.rcqjy.com"/>
+    <script src="http://base.s.rcqjy.com/js/base.js"></script>
+    <script src="http://base.s.rcqjy.com/js/base.mo.js"></script>
+    <script src="http://base.s.rcqjy.com/js/editor.js"></script>
+    <link rel="stylesheet" href="http://base.s.rcqjy.com/css/base.css">
+     <!--本地-->
+<!--    <script src="js/base.js"></script>-->
+<!--    <script src="js/base.mo.js"></script>-->
+<!--    <script src="js/editor.js"></script>-->
+<!--    <link rel="stylesheet" href="css/base.css" />-->
+
+</head>
+<body>
+<!--顶部-->
+<div class="mo-header">
+    <div class="logo"><img src="http://base.s.rcqjy.com/img/logo.png" /></div>
+    <a href="javascript:;" class="mo-goback">学生管理</a>
+    <div class="nav" id='nav'>
+        <!--className为active,表示选中-->
+    </div>
+    <!--登陆用户信息-->
+    <div class="mo-userinfo">
+        <img src="http://base.s.rcqjy.com/img/default-user-img.png" class="icon br50" />
+        <div class="mo-dropdown mar-rig-10">
+            <div class="mo-dropdown-tit" id='myxm'>admin</div>
+            <div class="mo-dropdown-sub">
+                <a href="login.php?act=logout">退出</a>
+            </div>
+        </div>
+        <div class="mo-dropdown">
+            <div class="mo-dropdown-tit">切换主题</div>
+            <div class="mo-dropdown-sub">
+                <a href="javascript:;" class="active">默认</a>
+                <a href="javascript:;">明亮</a>
+                <a href="javascript:;">暗黑</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--左侧菜单栏目-->
+<!--div class="mo-mob-left-a"></div--><!--移动端显示，点击显示隐藏左侧菜单栏-->
+<div class="mo-left">
+    <div class="mo-menu mar-top-20" id="treeclass">
+
+    </div>
+</div>
+<!--面包屑导航-->
+<div class="mo-breadlink" id='classpath'>
+<!--    <a href="javascript:;">主页</a>&gt;<a href="javascript:;">主栏目一</a>&gt;<a href="javascript:;">栏目二</a>&gt;<a href="javascript:;">二级栏目</a>-->
+</div>
+
+<!--主体内容-->
+<div class="mo-right">
+    <div class="mo-tables" id="mtb"></div>
+</div>
+<div class="" id="mbd"></div>
+</body>
+<!--<script src="js/main.js"></script>-->
+<script>
+
+    var cid=getUrlValue('cid',0);
+    var tableobj=null;//表格
+
+    function showdelnews(data){        //删除按钮事件
+        if(data.length==0){
+            messages('error','cen','请先选择要删除的数据');
+            return;
+        }
+        if(!confirm('你确定要删除这'+data.length+'条记录吗？'))return;
+        ajax('api/student_examination.php?act=showdel',JSON.stringify(data),function(jobj){
+            // alert(jobj.msg);
+            messages('success', 'cen', jobj.msg);
+            getlist(tableobj.makeurl('api/student_examination.php?act=getnewslist&cid='+cid));//重新显示表格
+        });
+    }
+
+    function showsavenews(id,data,obj){       //保存按钮
+        console.log('updata:',data);
+        ajax('api/student_examination.php?act=showsave&id='+id,JSON.stringify(data),function(jobj){
+            // alert(jobj.msg);
+            messages('success','cen','保存成功');
+            if(jobj.code==200){
+                obj.remove();//清除编辑窗口
+                getlist(tableobj.makeurl('api/student_examination.php?act=getnewslist&cid='+cid),tableobj.showtype);//重新显示表格
+            }
+
+        });
+    }
+
+    function showeditnews(id){        //新增、编辑按钮
+        ajax('api/student_examination.php?act=showedit&id='+id,null,function(jobj){
+            if(jobj.code!=200){alert(jobj.msg);return;}
+            var para={};
+            // if(!jobj.data.data){jobj.data.data={};jobj.data.data.class_id=cid;}
+            para['parentbox']=$('mbd');
+            para['data']=jobj.data;
+            para['extdata']=null;
+            para['buttons']=[{txt:'保存'}];
+            // para['title']='学生编辑';
+            para['btnfun']=function(obj,index){
+                if(index==0){
+                    this.inputok(function(data){//有文件上传时，必须通过inputok正式上传文件
+                        //console.log('finished:',data);
+                        showsavenews(id,data,Editbox);
+                    });
+                }
+            };
+            para['changefun']=function(obj,key,value){
+                //console.log(key,value);
+                //if(key=='gz' && value>1000){alert('err');obj.value=999;}
+                //alert(key+'的值变为了：'+value);
+            };
+
+            var Editbox=new editClass(para);
+        });
+    }
+
+
+
+    function getlist(url,showtype){//显示表格
+        ajax(url,null,function(jobj){
+            if(jobj.code==200){
+                var extdata={
+                    headbtns:[{txt:'新增'},{txt:'删除'}],
+                    linebtns:[{txt:'编辑'},{txt:'删除',cls:'mo-btns btns-del-line sm'}]
+                }
+                var para={};
+                para['parentbox']=$('mtb');
+                para['data']=jobj.data;
+                para['extdata']=extdata;
+                para['btnfun']=function(obj,index,id){//中间行按钮事件
+                    if(index==0)showeditnews(id);//查看详情
+                    if(index==1)showdelnews([id]);//删除一条
+                };
+                para['headfun']=function(obj,index,ids){//顶部按钮
+                    if(index==0)showeditnews(0);//新增
+                    if(index==1)showdelnews(ids);//删除选中
+                };
+                para['pagefun']=function(obj,pg){
+                    if(pg==-1){//导出
+                        window.open(this.makeurl('api/student_examination.php?act=getnewslist&cid='+cid,-1));
+                    }else{
+                        getlist(this.makeurl('api/student_examination.php?act=getnewslist&cid='+cid,pg),this.showtype);
+                    }
+                };
+                para['showtype']=showtype;//0表格 2标签
+                para['finishfun']=function(){
+                    for(let i=0;i<this.data.data.length;i++){
+                        if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+                    }
+                };
+                var tbobj=new tableClass(para);
+                tableobj=tbobj;
+            }
+        });
+    }
+
+    function getQueryString(name) {     //获取URL传过来的值
+        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        let r = decodeURI(window.location.search).substr(1).match(reg);
+        if(r != null) return (r[2]);
+        return null;
+    }
+    var top_id=getQueryString('top_id');     //顶部菜单的ID
+    var left_id=getQueryString('left_id');   //侧边ID
+    console.log(top_id); //
+    console.log(left_id); //
+    //菜单调用函数
+    function getmyinfo(top_id,left_id){            //获取顶部菜单
+        ajax('api/main.php?act=getmyinfo',null,function(jobj){
+            $('nav').innerHTML='';
+            let data = jobj.data;
+            for(let k in data){
+                let n=domnew($('nav'),'a',null,data[k].name);
+                n.setAttribute('class','cd');
+                n.setAttribute('href','javascript:;');
+                n.setAttribute('id',data[k].id);
+            }
+            let yj=document.getElementsByClassName('cd');         //顶部菜单切换样式
+            for(let i=0;i<yj.length;i++){
+                yj[i].onmouseover=function(){
+                    this.classList.add('active');
+                }
+                yj[i].onclick=function(){
+                    this.classList.add('active');
+                    //点击显示侧边菜单
+                    // alert(this.id);
+                    let pid = this.id;
+                    ajax('api/main.php?act=getmymenu&pid='+pid,null,function(data) {
+                        // console.log(data.data);
+                        $('treeclass').innerHTML='';
+                        let datam = data.data;
+                        for(let k in datam) {
+                            let n = domnew($('treeclass'), 'div', null);    //domnew函数构造页面元素（div、a等）
+                            n.setAttribute('class', 'mo-menu-li');
+                            n.setAttribute('id', datam[k].id);
+                        }
+                        for(let k in datam){
+                            let m=domnew($(datam[k].id),'a',null,datam[k].name);
+                            m.setAttribute('class','ab');
+                            m.setAttribute('href',datam[k].url+'?top_id='+datam[k].pid+'&left_id='+ datam[k].id);
+                            m.setAttribute('id',datam[k].pid+datam[k].id);
+                        }
+                        document.getElementById(top_id+left_id).className='active'; //触发侧边效果
+                        getlist('api/student_examination.php?act=getnewslist&cid='+cid);  //
+                    })
+
+                }
+                yj[i].onmouseout=function(){
+                    this.classList.remove('active');
+                }
+            }
+            document.getElementById(top_id).click();    //点击顶部
+            document.getElementById(top_id).className='active';
+        });
+
+    }
+    getmyinfo(top_id,left_id);
+
+
+</script>
