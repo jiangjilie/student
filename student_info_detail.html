@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>学生管理</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Access-Control-Allow-Origin" content="*.rcqjy.com"/>
+	<script src="http://base.s.rcqjy.com/js/base.js"></script>
+	<script src="http://base.s.rcqjy.com/js/base.mo.js"></script>
+	<script src="http://base.s.rcqjy.com/js/editor.js"></script>
+	<link rel="stylesheet" href="http://base.s.rcqjy.com/css/base.css">
+	<!--本地-->
+	<!--    <script src="js/base.js"></script>-->
+	<!--    <script src="js/base.mo.js"></script>-->
+	<!--    <script src="js/editor.js"></script>-->
+	<!--    <link rel="stylesheet" href="css/base.css" />-->
+	<style>
+		body{
+			background: #e8e8e8;
+		}
+		.mo-btns{
+			border: 1px solid #e8e8e8;
+			background: #fafafa;
+			color: rgba(0,0,0,.65);
+			margin-right: 2px;
+			padding: 0 16px;
+			line-height: 38px;
+			float: left;
+		}
+		.mo-btns-active {
+			border: 1px solid #e8e8e8;
+			background: #fafafa;
+			color: #168bc7;
+			margin-right: 2px;
+			padding: 0 16px;
+			line-height: 38px;
+		}
+		.mo-header {
+			position: inherit;
+		}
+		.mo-edit-body {
+			max-width: 100%;
+		}
+		.fixed-bottom {
+			text-align: center;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			padding: 10px 0;
+			background: #fff;
+			z-index: 99;
+			border: 1px solid #e8e8e8;
+			-webkit-box-shadow: -4px 2px 4px rgb(24 144 255 / 20%);
+			box-shadow: -3px 2px 4px rgb(24 144 255 / 20%);
+		}
+		.mo-btns btns-edit{
+			text-align: center;
+		}
+</style>
+</head>
+<body>
+<!--顶部-->
+<div class="mo-header">
+	<div class="logo"><img src="http://base.s.rcqjy.com/img/logo.png" /></div>
+	<a href="javascript:;" class="mo-goback">学生信息</a>
+	<div class="nav" id='nav'>
+		<!--className为active,表示选中-->
+	</div>
+	<!--登陆用户信息-->
+	<div class="mo-userinfo">
+		<img src="http://base.s.rcqjy.com/img/default-user-img.png" class="icon br50" />
+		<div class="mo-dropdown mar-rig-10">
+			<div class="mo-dropdown-tit" id='myxm'>admin</div>
+			<div class="mo-dropdown-sub">
+				<a href="login.php?act=logout">退出</a>
+			</div>
+		</div>
+		<div class="mo-dropdown">
+			<div class="mo-dropdown-tit">切换主题</div>
+			<div class="mo-dropdown-sub">
+				<a href="javascript:;" class="active">默认</a>
+				<a href="javascript:;">明亮</a>
+				<a href="javascript:;">暗黑</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div style="margin-left: 2%">
+<div class="mo-btns" style="color:aliceblue;background-color:#168bc7 "><span onclick="jc()">基础信息</span></div>
+<div class="mo-btns"><span onclick="jt()">家庭信息</span></div>
+<div class="mo-btns"><span onclick="cj()">学生成绩</span></div>
+<div class="mo-btns"><span onclick="jl()">获奖登记</span></div>
+<!--<div class="mo-btns" id="detail5" onclick="gb()">学生干部任职</div>-->
+<div class="mo-btns"><span onclick="jxj()">奖学金</span></div>
+<div class="mo-btns"><span onclick="zxj()">助学金</span></div>
+<div class="mo-btns"><span onclick="wj()">违纪处分</span></div>
+
+<div class="">
+	<div class="mo-tables" id="mtb"></div>
+</div>
+</div>
+<div class="fixed-bottom">
+	<div style="margin-left: 42%" id="save_all">
+	<div class="mo-btns btns-edit" onclick="return_st()">返回学生列表</div>
+<!--	<div class="mo-btns btns-normal" id="save">保存</div>-->
+	</div>
+</div>
+</body>
+<script>
+	var cid=getUrlValue('id');    //获取URL的值
+	var tableobj=null;//表格
+	console.log(cid);
+	//基础信息
+	function showeditjc(url,id){        //新增、编辑按钮
+		ajax(url,null,function(jobj){
+			if(jobj.code!=200){alert(jobj.msg);return;}
+			var para={};
+			// if(!jobj.data.data){jobj.data.data={};jobj.data.data.class_id=cid;}
+			para['parentbox']=$('mtb');
+			para['data']=jobj.data;
+			// para['extdata']=null;
+			para['extdata']={
+				cls: {
+					bodymain: 'mo-edit-block',
+					// labelbox: 'my-3 labelbox',
+					// labelhead: 'form-label',
+					labeltextarea:'mo-forms-textarea full row4',
+				}
+			};
+			para['buttons']=[{txt:'保存'}];
+			// para['title']='学生编辑';
+			para['btnfun']=function(obj,index){
+				if(index==0){
+					this.inputok(function(data){//有文件上传时，必须通过inputok正式上传文件
+						//console.log('finished:',data);
+						showsavejc(id,data,Editbox);
+					});
+				}
+			};
+			para['changefun']=function(obj,key,value){
+				//console.log(key,value);
+				//if(key=='gz' && value>1000){alert('err');obj.value=999;}
+				//alert(key+'的值变为了：'+value);
+			};
+
+			var Editbox=new editClass(para);
+		});
+	}
+	function showsavejc(id,data,obj){       //保存按钮
+		console.log('updata:',data);
+		ajax('api/student_info.php?act=showsave&id='+id,JSON.stringify(data),function(jobj){
+			// alert(jobj.msg);
+			messages('success','cen','保存成功');
+		});
+	}
+
+	showeditjc('api/student_info.php?act=showedit&id='+cid,cid)
+
+
+	//家庭信息
+	function showeditjt(url,id){        //新增、编辑按钮
+		ajax(url,null,function(jobj){
+			if(jobj.code!=200){alert(jobj.msg);return;}
+			var para={};
+			// if(!jobj.data.data){jobj.data.data={};jobj.data.data.class_id=cid;}
+			para['parentbox']=$('mtb');
+			para['data']=jobj.data;
+			// para['extdata']=null;
+			para['extdata']={
+				cls: {
+					bodymain: 'mo-edit-block',
+					// labelbox: 'my-3 labelbox',
+					// labelhead: 'form-label',
+					labeltextarea:'mo-forms-textarea full row4',
+				}
+			};
+			para['buttons']=[{txt:'保存'}];
+			// para['title']='学生编辑';
+			para['btnfun']=function(obj,index){
+				if(index==0){
+					this.inputok(function(data){//有文件上传时，必须通过inputok正式上传文件
+						//console.log('finished:',data);
+						showsavejt(id,data,Editbox);
+					});
+				}
+			};
+			para['changefun']=function(obj,key,value){
+				//console.log(key,value);
+				//if(key=='gz' && value>1000){alert('err');obj.value=999;}
+				//alert(key+'的值变为了：'+value);
+			};
+
+			var Editbox=new editClass(para);
+		});
+	}
+	function showsavejt(id,data,obj){       //保存按钮
+		console.log('updata:',data);
+		ajax('api/student_info_family.php?act=showsave&id='+id,JSON.stringify(data),function(jobj){
+			// alert(jobj.msg);
+			messages('success','cen','保存成功');
+		});
+	}
+	//成绩显示
+	function getlist_cj(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl('api/student_info_achievement.php?act=getnewslist&cid='+cid,-1));
+					}else{
+						getlist(this.makeurl('api/student_info_achievement.php?act=getnewslist&cid='+cid,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','暂无该生成绩记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	//奖励显示
+	function getlist_jl(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl('api/student_info_jl.php?act=getnewslist&cid='+cid,-1));
+					}else{
+						getlist(this.makeurl('api/student_info_jl.php?act=getnewslist&cid='+cid,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','该生暂无获奖记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	//违纪显示
+	function getlist_wj(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl(url,-1));
+					}else{
+						getlist(this.makeurl(url,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','该生暂无违纪记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	//违纪显示
+	function getlist_wj(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl(url,-1));
+					}else{
+						getlist(this.makeurl(url,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','该生暂无违纪记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	//奖学金显示
+	function getlist_jxj(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl(url,-1));
+					}else{
+						getlist(this.makeurl(url,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','该生暂无奖学金记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	//助学金显示
+	function getlist_zxj(url,showtype){//显示表格
+		ajax(url,null,function(jobj){
+			if(jobj.code==200){
+				var extdata={
+				}
+				var para={};
+				para['parentbox']=$('mtb');
+				para['data']=jobj.data;
+				para['extdata']=extdata;
+				para['btnfun']=function(obj,index,id){//中间行按钮事件
+					if(index==0)showeditnews(id);//查看详情
+					if(index==1)showdelnews([id]);//删除一条
+				};
+				para['headfun']=function(obj,index,ids){//顶部按钮
+					if(index==0)showeditnews(0);//新增
+					if(index==1)showdelnews(ids);//删除选中
+				};
+				para['pagefun']=function(obj,pg){
+					if(pg==-1){//导出
+						window.open(this.makeurl(url,-1));
+					}else{
+						getlist(this.makeurl(url,pg),this.showtype);
+					}
+				};
+				para['showtype']=showtype;//0表格 2标签
+				para['finishfun']=function(){
+					if (this.data.data.length==0){
+						// this.dom.innerHTML='<span>暂无数据</span>';
+						messages('warn','cen','该生暂无助学金记录')
+					}
+					// for(let i=0;i<this.data.data.length;i++){
+					// 	if(this.data.data[i].pass=='待审')this.rows[i].dom.style.color='red';
+					// }
+				};
+				var tbobj=new tableClass(para);
+				tableobj=tbobj;
+			}
+		});
+	}
+	let li = document.getElementsByClassName('mo-btns')
+	for (let i = 0; i < li.length; i++) {         //冒泡事件，点击按钮 变颜色的同时触发span的点击事件
+		li[i].onclick = function () {
+			// this.style.color = "#168bc7";
+			 this.style.color = "aliceblue";
+			 this.style.backgroundColor = "#168bc7";
+			let sb = this.parentNode.children //查找所有节点
+			for (let o = 0; o < sb.length; o++) {
+				if (sb[o].nodeType === 1 && sb[o] !== this) { //剔除自己
+					// sb[o].style.color = "rgba(0,0,0,.65)";
+					sb[o].style.background= "#fafafa";
+					sb[o].style.color= "rgba(0,0,0,.65)";
+
+
+				}
+			}
+			// document.getElementById('mtb').innerHTML=''
+			//
+			// getlist('api/'+this.id+'.php?act=showedit&cid='+cid);
+		}
+	}
+			function jc(){
+				// this.style.color = "#168bc7";
+
+				document.getElementById('mtb').innerHTML=''
+				showeditjc('api/student_info.php?act=showedit&id='+cid,cid)
+
+				}
+
+			function jt(){
+				document.getElementById('mtb').innerHTML=''
+				showeditjt('api/student_info_family.php?act=showedit&id='+cid,cid)
+
+				}
+			function cj(){
+				document.getElementById('mtb').innerHTML=''
+				getlist_cj('api/student_info_achievement.php?act=getnewslist&id='+cid,0)
+
+			}
+			function jl(){
+				document.getElementById('mtb').innerHTML=''
+				getlist_jl('api/student_info_jl.php?act=getnewslist&id='+cid,0)
+
+			}
+			function wj(){
+				document.getElementById('mtb').innerHTML=''
+				getlist_wj('api/student_info_wj.php?act=getnewslist&id='+cid,0)
+
+			}
+			function jxj(){
+				document.getElementById('mtb').innerHTML=''
+				getlist_jxj('api/student_info_jxj.php?act=getnewslist&id='+cid,0)
+
+					}
+			function zxj(){
+				document.getElementById('mtb').innerHTML=''
+				getlist_zxj('api/student_info_zxj.php?act=getnewslist&id='+cid,0)
+
+			}
+
+
+</script>
+<script>
+	function return_st(){
+		window.close();
+	}
+</script>
+</html>

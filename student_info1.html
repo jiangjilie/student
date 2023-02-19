@@ -48,7 +48,7 @@
 <!--左侧菜单栏目-->
 <!--div class="mo-mob-left-a"></div--><!--移动端显示，点击显示隐藏左侧菜单栏-->
 <div class="mo-left">
-    <div class="mo-menu mar-top-20" id="modelpath">
+    <div class="mo-menu mar-top-20" id="modelclass">
 
     </div>
 </div>
@@ -70,7 +70,14 @@
 <script>
     var cid=getUrlValue('cid',0);
     var tableobj=null;//表格
-    unit_id = '';
+    function getQueryString(name) {     //获取URL传过来的值
+        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        let r = decodeURI(window.location.search).substr(1).match(reg);
+        if(r != null) return (r[2]);
+        return null;
+    }
+    var top_id=getQueryString('top_id');     //获取顶部菜单的ID
+    var left_id=getQueryString('left_id');   //获取侧边ID
 
     function showdelnews(data){        //删除按钮事件
         if(data.length==0){
@@ -169,82 +176,22 @@ function showdetail(id){
             }
         });
     }
+    getlist('api/student_info.php?act=getnewslist&cid='+cid,0)
 
-    function getQueryString(name) {     //获取URL传过来的值
-        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
-        let r = decodeURI(window.location.search).substr(1).match(reg);
-        if(r != null) return (r[2]);
-        return null;
-    }
-    var top_id=getQueryString('top_id');     //获取顶部菜单的ID
-    var left_id=getQueryString('left_id');   //获取侧边ID
-    console.log(top_id); //
-    console.log(left_id); //
-    //菜单调用函数
-    function getmyinf(top_id,left_id){            //获取顶部菜单
-        ajax('api/main.php?act=getmyinfo',null,function(jobj){
-            $('nav').innerHTML='';
-
-            let data = jobj.data;
-            for(let k in data){
-                let n=domnew($('nav'),'a',null,data[k].name);
-                n.setAttribute('class','cd');
-                n.setAttribute('href','javascript:;');
-                n.setAttribute('id',data[k].id);
-            }
-            let yj=document.getElementsByClassName('cd');         //顶部菜单切换样式
-            for(let i=0;i<yj.length;i++){
-                // yj[i].onmouseover=function(){
-                //     this.classList.add('active');
-                // }
-                yj[i].onclick=function(){
-                    this.classList.add('active');
-                    let sb = this.parentNode.children //查找所有节点
-                    for (let o = 0; o < sb.length; o++) {
-                        if (sb[o].nodeType === 1 && sb[o] !== this) { //剔除自己
-                            sb[o].classList.remove('active') //操作
-                        }
-                    }
-                    //点击显示侧边菜单
-                    // alert(this.id);
-                    let pid = this.id;
-                    ajax('api/main.php?act=getmymenu&pid='+pid,null,function(data) {
-                        console.log(data.data);
-                        $('modelpath').innerHTML='';
-                        // $('classpath').innerHTML='';
-                        let datam = data.data;
-                        for(let k in datam) {
-                            let n = domnew($('modelpath'), 'div', null);    //domnew函数构造页面元素（div、a等）
-                            n.setAttribute('class', 'mo-menu-li');
-                            n.setAttribute('id', datam[k].id);
-                        }
-                        for(let k=0;k<datam.length;k++ ){
-                            let m=domnew($(datam[k].id),'a',null,datam[k].name);
-                            m.setAttribute('class','ab');
-                            m.setAttribute('href',datam[k].url+'?top_id='+datam[k].pid+'&left_id='+ datam[k].id);
-                            m.setAttribute('id',datam[k].pid+datam[k].id);
-                            // $('classpath').innerHTML='';
-                            // domnew($('classpath'),'a',null,datam[k].pid+'>'+datam[k].id);
-                            // domnew($('classpath'),'a',null,datam[k].name);   //面包屑导航
-                        }
-
-                        document.getElementById(top_id+left_id).className='active'; //触发侧边效果
-                        // getlist('api/student_info.php?act=getnewslist&cid='+cid);  //调用显示表格方法
-                    })
-
-                }
-                // yj[i].onmouseout=function(){
-                //     this.classList.remove('active');
-                // }
-            }
-            document.getElementById(top_id).click();    //点击顶部
-            document.getElementById(top_id).className='active';
-
-        });
-
-    }
-    getmyinfo(top_id,left_id);
     // 单位树状图
+    // function getclasspath(){       //面包屑导航
+    //     ajax('api/news.php?act=getclasspath&cid='+cid,null,function(jobj){
+    //         let pdiv=$('classpath');pdiv.innerHTML='';
+    //         let a=domnew(pdiv,'a',null,'首页');
+    //         a.href='index.html';
+    //         for(let i=0;i<jobj.data.length;i++){
+    //             pdiv.insertAdjacentHTML('beforeend','&gt;');
+    //             a=domnew(pdiv,'a',null,jobj.data[i].name);
+    //             a.href='content.html?cid='+jobj.data[i].id;
+    //         }
+    //     });
+    // }
+
     function showclasstree(data){//树形图
         let para={};
         para['parentbox']=$('treeclass');
@@ -254,7 +201,6 @@ function showdetail(id){
         para['labfun']=function(obj,id,txt){
             cid=id;
             getlist('api/student_info.php?act=getnewslist&cid='+cid);
-            getmyinf(top_id,left_id);
             // getclasspath();
             if(document.getElementsByClassName('mo-mob-close-a')[0]){//自动隐藏
                 document.getElementsByClassName('mo-mob-close-a')[0].click();
@@ -263,20 +209,71 @@ function showdetail(id){
         };
         var tree=new treeClass(para);
     }
+
+    function shownav(data,model) {   //顶部导航栏
+        $('nav').innerHTML = '';
+        for (let k in data) {
+            let n = domnew($('nav'), 'a', null, data[k].name);
+            n.setAttribute('class', 'cd');
+            n.setAttribute('href', 'javascript:;');
+            n.setAttribute('id', data[k].id);
+        }
+        let yj = document.getElementsByClassName('cd');         //顶部菜单切换样式
+        for (let i = 0; i < yj.length; i++) {
+            // yj[i].onmouseover=function(){
+            //     this.classList.add('active');
+            // }
+            yj[i].onclick = function () {
+                this.classList.add('active');
+                let sb = this.parentNode.children //查找所有节点
+                for (let o = 0; o < sb.length; o++) {
+                    if (sb[o].nodeType === 1 && sb[o] !== this) { //剔除自己
+                        sb[o].classList.remove('active') //操作
+                    }
+                }
+                //点击显示侧边菜单
+                // alert(this.id);
+                let pid = this.id;
+                ajax('api/main.php?act=getmymenu&pid=' + pid, null, function (data) {
+                    // console.log(data.data);
+                    $('modelclass').innerHTML = '';
+                    // $('classpath').innerHTML='';
+                    let datam = data.data;
+                    for (let k in datam) {
+                        let n = domnew($('modelclass'), 'div', null);    //domnew函数构造页面元素（div、a等）
+                        n.setAttribute('class', 'mo-menu-li');
+                        n.setAttribute('id', datam[k].id);
+                    }
+                    for (let k in datam) {
+                        let m = domnew($(datam[k].id), 'a', null, datam[k].name);
+                        m.setAttribute('class', 'ab');
+                        m.setAttribute('href', datam[k].url + '?top_id=' + datam[k].pid + '&left_id=' + datam[k].id);
+                        m.setAttribute('id', datam[k].pid + datam[k].id);
+                        $('classpath').innerHTML = '';
+                        // domnew($('classpath'),'a',null,datam[k].pid+'>'+datam[k].id);
+                        // domnew($('classpath'),'a',null,data[k].name);   //面包屑导航
+                    }
+                    document.getElementById(top_id + left_id).className = 'active'; //触发侧边效果
+                    // getlist('api/student_info.php?act=getnewslist&cid=' + cid);  //调用显示表格方法
+                })
+
+            }
+        }
+    }
     function getmyinfo(model){          //模块
-        ajax('api/main.php?act=getmenu&model='+model,null,function(jobj){
-            // console.log(jobj.data.model[0].name);
+        ajax('api/main.php?act=getmyinfo&model='+model,null,function(jobj){
+            console.log(jobj.data.model[0].name);
             // console.log(jobj.data.model);
             // if(jobj.code==503){location='login.php';return;}
             // $('myxm').innerHTML=jobj.data.xm;
-            // shownav(jobj.data.model,model);
+            shownav(jobj.data.model,model);
             if(jobj.data['class']){
                 showclasstree(jobj.data['class']);
             }
-            getmyinf(top_id,left_id);
             getlist('api/student_info.php?act=getnewslist&cid='+cid,0)
         });
     }
-    getmyinfo('model');
+    getmyinfo('content');
+    // getclasspath();
 
 </script>

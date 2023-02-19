@@ -4,11 +4,11 @@
  */
 include "public.php";
 include "funData.php";
-//include "../api/Common.php";
-//session_start();
-//
-//$com = new Common();
-//$com->isLogin();
+include "../api/Common.php";
+session_start();
+
+$com = new Common();
+$com->isLogin();
 
 $act = get('act');
 $act = str_ireplace('(', '', str_ireplace('\'', '', str_replace(' ', '', $act)));
@@ -26,7 +26,7 @@ if (function_exists('do_' . $act)) {
  */
 function do_getAdminMenuInfo()
 {
-//    checkMethod('GET');
+    checkMethod('GET');
     $pid = get('pid', 0);
     $data = dosql_data('select id,parent_id,name,param,icon,web_url from menu where deleted=0 and parent_id =' . $pid);
     success_return($data, '获取成功！');
@@ -52,7 +52,7 @@ function do_getWebsiteBaseInfo()
  */
 function do_getAllUnitData()
 {
-//    checkMethod();
+    checkMethod();
     $sql = 'select id,parent_id pid,unit_name txt from unit_info  where deleted= 0';
     $data = dosql_data($sql);
     $re['pid'] = $_SESSION['unit_id'];

@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>学生管理</title>
+    <title>菜单管理</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Access-Control-Allow-Origin" content="*.rcqjy.com"/>
     <script src="http://base.s.rcqjy.com/js/base.js"></script>
@@ -49,7 +49,6 @@
 <!--div class="mo-mob-left-a"></div--><!--移动端显示，点击显示隐藏左侧菜单栏-->
 <div class="mo-left">
     <div class="mo-menu mar-top-20" id="treeclass">
-
     </div>
 </div>
 <!--面包屑导航-->
@@ -63,7 +62,7 @@
 </div>
 <div class="" id="mbd"></div>
 </body>
-<!--<script src="js/main.js"></script>-->
+<!--<script src="js/public.js"></script>-->
 <script>
 
     var cid=getUrlValue('cid',0);
@@ -75,34 +74,35 @@
             return;
         }
         if(!confirm('你确定要删除这'+data.length+'条记录吗？'))return;
-        ajax('api/student_examination.php?act=showdel',JSON.stringify(data),function(jobj){
+        ajax('api/journal.php?act=showdel',JSON.stringify(data),function(jobj){
             // alert(jobj.msg);
             messages('success', 'cen', jobj.msg);
-            getlist(tableobj.makeurl('api/student_examination.php?act=getnewslist&cid='+cid));//重新显示表格
+            getlist(tableobj.makeurl('api/journal.php?act=getnewslist&cid='+cid));//重新显示表格
         });
     }
 
     function showsavenews(id,data,obj){       //保存按钮
         console.log('updata:',data);
-        ajax('api/student_examination.php?act=showsave&id='+id,JSON.stringify(data),function(jobj){
+        ajax('api/journal.php?act=showsave&id='+id,JSON.stringify(data),function(jobj){
             // alert(jobj.msg);
             messages('success','cen','保存成功');
             if(jobj.code==200){
                 obj.remove();//清除编辑窗口
-                getlist(tableobj.makeurl('api/student_examination.php?act=getnewslist&cid='+cid),tableobj.showtype);//重新显示表格
+                getlist(tableobj.makeurl('api/journal.php?act=getnewslist&cid='+cid),tableobj.showtype);//重新显示表格
             }
 
         });
     }
 
     function showeditnews(id){        //新增、编辑按钮
-        ajax('api/student_examination.php?act=showedit&id='+id,null,function(jobj){
+        ajax('api/journal.php?act=showedit&id='+id,null,function(jobj){
             if(jobj.code!=200){alert(jobj.msg);return;}
             var para={};
             // if(!jobj.data.data){jobj.data.data={};jobj.data.data.class_id=cid;}
             para['parentbox']=$('mbd');
             para['data']=jobj.data;
-            para['extdata']=null;
+            // para['extdata']={cls:{body:'mo-edit-body row1'}};    //编辑界面样式
+            para['extdata']=null;    //编辑界面样式
             para['buttons']=[{txt:'保存'}];
             // para['title']='学生编辑';
             para['btnfun']=function(obj,index){
@@ -124,31 +124,30 @@
     }
 
 
-
     function getlist(url,showtype){//显示表格
         ajax(url,null,function(jobj){
             if(jobj.code==200){
                 var extdata={
-                    headbtns:[{txt:'新增'},{txt:'删除'}],
-                    linebtns:[{txt:'编辑'},{txt:'删除',cls:'mo-btns btns-del-line sm'}]
+                    // headbtns:[{txt:'新增'},{txt:'删除'}],
+                    // linebtns:[{txt:'编辑'},{txt:'删除',cls:'mo-btns btns-del-line sm'}]
                 }
                 var para={};
                 para['parentbox']=$('mtb');
                 para['data']=jobj.data;
                 para['extdata']=extdata;
-                para['btnfun']=function(obj,index,id){//中间行按钮事件
-                    if(index==0)showeditnews(id);//查看详情
-                    if(index==1)showdelnews([id]);//删除一条
-                };
-                para['headfun']=function(obj,index,ids){//顶部按钮
-                    if(index==0)showeditnews(0);//新增
-                    if(index==1)showdelnews(ids);//删除选中
-                };
+                // para['btnfun']=function(obj,index,id){//中间行按钮事件
+                //     if(index==0)showeditnews(id);//修改
+                //     if(index==1)showdelnews([id]);//删除一条
+                // };
+                // para['headfun']=function(obj,index,ids){//顶部按钮
+                //     if(index==0)showeditnews(0);//新增
+                //     if(index==1)showdelnews(ids);//删除选中
+                // };
                 para['pagefun']=function(obj,pg){
                     if(pg==-1){//导出
-                        window.open(this.makeurl('api/student_examination.php?act=getnewslist&cid='+cid,-1));
+                        window.open(this.makeurl('api/journal.php?act=getnewslist&cid='+cid,-1));
                     }else{
-                        getlist(this.makeurl('api/student_examination.php?act=getnewslist&cid='+cid,pg),this.showtype);
+                        getlist(this.makeurl('api/journal.php?act=getnewslist&cid='+cid,pg),this.showtype);
                     }
                 };
                 para['showtype']=showtype;//0表格 2标签
@@ -162,6 +161,7 @@
             }
         });
     }
+
 
     function getQueryString(name) {     //获取URL传过来的值
         let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
@@ -216,7 +216,7 @@
                             m.setAttribute('id',datam[k].pid+datam[k].id);
                         }
                         document.getElementById(top_id+left_id).className='active'; //触发侧边效果
-                        getlist('api/student_examination.php?act=getnewslist&cid='+cid);  //
+                        getlist('api/data_student_info.php?act=getnewslist&cid='+cid);  //
                     })
 
                 }
@@ -227,9 +227,7 @@
             document.getElementById(top_id).click();    //点击顶部
             document.getElementById(top_id).className='active';
         });
-
     }
     getmyinfo(top_id,left_id);
-
 
 </script>
